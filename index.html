@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FASHEON - Sanal Prova</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img src="assets/logo.png" alt="FASHEON" class="logo">
+            <span class="version">Beta 0.2.7</span>
+        </div>
+        <div class="header-right">
+            <a href="https://fasheone.com" target="_blank" class="website-link">fasheone.com</a>
+            <button class="login-btn" id="loginBtn">Giriş Yap</button>
+            <button class="close-btn" id="closeBtn">✕</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="tryOn">Dene</button>
+        <button class="tab" data-tab="history">Geçmiş</button>
+        <button class="tab" data-tab="account">Hesap</button>
+    </div>
+
+    <div class="main-content">
+        <div class="language-selector">
+            <select id="languageSelect">
+                <option value="tr">Türkçe</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+
+        <div class="try-on-container">
+            <h2 id="tryOnTitle">Ürünü Dene</h2>
+            <p id="instructions">Seçtiğiniz ürünü deneyin</p>
+            <p class="note" id="requestsLeft">3 deneme hakkınız kaldı, daha fazlası için giriş yapın</p>
+
+            <div class="image-containers">
+                <div class="product-container">
+                    <div class="placeholder-text">Ürün görseli seçilmedi, lütfen katalog sekmesinden bir ürün seçin</div>
+                </div>
+                <div class="model-container">
+                    <button class="upload-btn" id="uploadBtn">Fotoğraf Yükle</button>
+                </div>
+            </div>
+
+            <button class="try-on-btn" id="tryOnBtn">Dene</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p class="warning">Uyarı: Bu eklenti genel bir fikir verir ve gerçekteki görünümü tam olarak yansıtmayabilir.</p>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

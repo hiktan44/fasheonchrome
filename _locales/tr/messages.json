@@ -1,0 +1,22 @@
+{
+  "appName": {
+    "message": "FASHEON",
+    "description": "Uygulama adı"
+  },
+  "appDescription": {
+    "message": "Favori alışveriş sitelerinizde kıyafetleri denemeden önce nasıl göründüğünü görün.",
+    "description": "Uygulama açıklaması"
+  },
+  "tryOnButton": {
+    "message": "Dene",
+    "description": "Deneme butonu metni"
+  },
+  "uploadButton": {
+    "message": "Fotoğraf Yükle",
+    "description": "Fotoğraf yükleme butonu"
+  },
+  "loginButton": {
+    "message": "Giriş Yap",
+    "description": "Giriş yapma butonu"
+  }
+}
