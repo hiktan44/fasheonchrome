@@ -1,6 +1,6 @@
-// Uzantı yüklendiğinde çalışacak
+let currentTab = null;
+
 chrome.runtime.onInstalled.addListener(() => {
-    // Sağ tık menüsünü oluştur
     chrome.contextMenus.create({
         id: 'tryOnProduct',
         title: 'Bu ürünü dene',
@@ -8,35 +8,48 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-// Sağ tık menüsüne tıklandığında
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === 'tryOnProduct') {
-        chrome.tabs.sendMessage(tab.id, {
-            action: 'tryOnImage',
-            imageUrl: info.srcUrl
-        });
-    }
-});
-
-// Runtime mesajlarını dinle
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'openTryOn') {
-        // Popup penceresini aç
-        chrome.windows.create({
+async function openTryOnWindow(imageUrl) {
+    try {
+        const window = await chrome.windows.create({
             url: 'index.html',
             type: 'popup',
             width: 800,
-            height: 600
-        }, (window) => {
-            // Pencere oluşturulduktan sonra seçilen ürün bilgisini gönder
-            if (window && window.tabs && window.tabs[0]) {
-                chrome.tabs.sendMessage(window.tabs[0].id, {
-                    action: 'setSelectedProduct',
-                    imageUrl: request.imageUrl
-                });
-            }
-            sendResponse({ success: true });
+            height: 800
         });
-        return true; // Asenkron yanıt için true döndür
+        
+        currentTab = window.tabs[0].id;
+
+        // Sayfanın yüklenmesini bekle
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Resmi gönder
+        await chrome.storage.local.set({ 'selectedProductImage': imageUrl });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === 'tryOnProduct') {
+        openTryOnWindow(info.srcUrl);
+    }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'requestProductImage') {
+        chrome.storage.local.get(['selectedProductImage'], function(result) {
+            if (result.selectedProductImage) {
+                sendResponse({ imageUrl: result.selectedProductImage });
+                // Kullanıldıktan sonra temizle
+                chrome.storage.local.remove(['selectedProductImage']);
+            }
+        });
+        return true;
+    }
+    
+    if (request.action === 'openTryOn') {
+        openTryOnWindow(request.imageUrl);
+        sendResponse({ success: true });
+        return true;
     }
 });

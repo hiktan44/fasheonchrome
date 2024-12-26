@@ -1,14 +1,21 @@
 {
   "manifest_version": 3,
   "name": "FASHEONE",
-  "version": "1.0",
+  "version": "0.2.7",
+  "description": "Try on clothes virtually before you buy them",
+  "default_locale": "tr",
   "permissions": [
     "storage",
     "activeTab",
-    "contextMenus"
+    "contextMenus",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://fasheone.com/*",
+    "https://api.fashn.ai/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "service_worker.js"
   },
   "action": {
     "default_popup": "popup.html",
@@ -17,7 +24,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "css": ["content.css"]
     }
   ],
   "icons": {
@@ -25,10 +33,8 @@
     "48": "assets/icons/icon48.png",
     "128": "assets/icons/icon128.png"
   },
-  "web_accessible_resources": [
-    {
-      "resources": ["popup.html", "assets/*"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  "web_accessible_resources": [{
+    "resources": ["popup.html", "index.html", "assets/*"],
+    "matches": ["<all_urls>"]
+  }]
 }

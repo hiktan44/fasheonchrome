@@ -1,39 +1,32 @@
-// FASHEON Try-on için buton HTML'i
-const tryOnButtonHTML = `
-  <div id="fasheon-tryon-button" class="fasheon-floating-button">
-    <button class="try-on-button" type="button">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 4C10.6193 4 9.5 5.11929 9.5 6.5C9.5 7.88071 10.6193 9 12 9C13.3807 9 14.5 7.88071 14.5 6.5C14.5 5.11929 13.3807 4 12 4Z" fill="#FF6B6B"/>
-        <path d="M8 11V19C8 19.5523 8.44772 20 9 20H15C15.5523 20 16 19.5523 16 19V11C16 10.4477 15.5523 10 15 10H9C8.44772 10 8 10.4477 8 11Z" fill="#4ECDC4"/>
-      </svg>
-      <span>Dene</span>
-    </button>
-  </div>
-`;
-
 // Ana ürün resmini bul
 function findMainProductImage() {
-    // Trendyol spesifik selektörler
     const possibleSelectors = [
         'img.product-image',
         'img.gallery-modal-content',
         'img[class*="product"]',
         'img[class*="detail"]',
-        'img[src*="prod"]'
+        'img[src*="prod"]',
+        'img[id*="product"]',
+        'img[alt*="product"]'
     ];
 
-    // Her bir selektörü dene
     for (const selector of possibleSelectors) {
         const images = document.querySelectorAll(selector);
         for (const img of images) {
             if (img.complete && img.naturalWidth >= 300 && img.naturalHeight >= 300) {
-                console.log('Ürün resmi bulundu:', img.src);
                 return img;
             }
         }
     }
 
-    console.warn('Ürün resmi bulunamadı');
+    // Sayfadaki tüm resimleri kontrol et
+    const allImages = document.querySelectorAll('img');
+    for (const img of allImages) {
+        if (img.complete && img.naturalWidth >= 300 && img.naturalHeight >= 300) {
+            return img;
+        }
+    }
+
     return null;
 }
 
@@ -41,24 +34,41 @@ function findMainProductImage() {
 function startTryOn(imageUrl) {
     showLoading();
     
-    chrome.storage.local.set({ 
-        selectedProduct: imageUrl,
-        timestamp: Date.now()
+    chrome.runtime.sendMessage({
+        action: 'openTryOn',
+        imageUrl: imageUrl
     }).then(() => {
-        chrome.runtime.sendMessage({
-            action: 'openTryOn',
-            imageUrl: imageUrl
-        }).then(() => {
-            hideLoading();
-        }).catch(error => {
-            console.error('Mesaj gönderme hatası:', error);
-            showError('İşlem başlatılamadı');
-            hideLoading();
-        });
-    }).catch(error => {
-        console.error('Storage hatası:', error);
-        showError('Veri kaydedilemedi');
         hideLoading();
+    }).catch(error => {
+        console.error('Mesaj gönderme hatası:', error);
+        showError('İşlem başlatılamadı');
+        hideLoading();
+    });
+}
+
+// Try On butonunu oluştur ve ekle
+function createTryOnButton(productImage) {
+    const button = document.createElement('button');
+    button.className = 'fasheon-try-on-button';
+    button.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a4 4 0 100 8 4 4 0 000-8z"></path>
+            <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"></path>
+            <path d="M22 21v-2a4 4 0 00-4-4h-2"></path>
+        </svg>
+        Dene
+    `;
+
+    const container = document.createElement('div');
+    container.style.position = 'relative';
+    productImage.parentNode.insertBefore(container, productImage);
+    container.appendChild(productImage);
+    container.appendChild(button);
+
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        startTryOn(productImage.src);
     });
 }
 
@@ -66,29 +76,14 @@ function startTryOn(imageUrl) {
 function injectTryOnButton() {
     removeExistingButton();
     
-    const container = document.createElement('div');
-    container.innerHTML = tryOnButtonHTML;
-    const button = container.firstElementChild;
-    document.body.appendChild(button);
-
-    const tryOnButton = button.querySelector('.try-on-button');
-    tryOnButton.addEventListener('click', handleTryOnClick);
-}
-
-function handleTryOnClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
     const productImage = findMainProductImage();
     if (productImage) {
-        startTryOn(productImage.src);
-    } else {
-        showError('Ürün resmi bulunamadı');
+        createTryOnButton(productImage);
     }
 }
 
 function removeExistingButton() {
-    const existingButton = document.getElementById('fasheon-tryon-button');
+    const existingButton = document.querySelector('.fasheon-try-on-button');
     if (existingButton) {
         existingButton.remove();
     }
@@ -119,26 +114,15 @@ function showError(message) {
     }, 3000);
 }
 
-// Mesajları dinle
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'tryOnImage') {
-        if (request.imageUrl) {
-            startTryOn(request.imageUrl);
-        }
-    }
-    return true; // Asenkron yanıt için
-});
-
-// Sayfa yüklendiğinde başlat
+// İlk yükleme ve sayfa değişikliklerini izle
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', injectTryOnButton);
 } else {
     injectTryOnButton();
 }
 
-// Dinamik sayfa değişikliklerini izle
 const observer = new MutationObserver(() => {
-    if (!document.getElementById('fasheon-tryon-button')) {
+    if (!document.querySelector('.fasheon-try-on-button')) {
         injectTryOnButton();
     }
 });
